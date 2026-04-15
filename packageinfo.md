@@ -2,6 +2,9 @@
 summary: "Vercel 프로젝트 배포 현황을 한눈에 모니터링하는 대시보드"
 icon: "📊"
 tags: ["vercel", "dashboard", "monitoring", "react"]
+serviceUrl: "https://vercel-dashboard-rose.vercel.app"
+deployType: "vercel"
+serviceStatus: "active"
 ---
 
 # 사용 기술
@@ -42,9 +45,10 @@ api/
 - 프로젝트 요약 (packageinfo.md/README/커밋 메시지)
 - 아이콘, 태그 표시
 - 최신 배포 상태 배지
+- 서비스 상태 배지 (운영 중, 점검 중, 개발 중, 폐기 예정)
 - 커밋 정보 (브랜치, SHA, 작성자)
 - GitHub 저장소 정보
-- 배포 URL 링크
+- 배포 URL 링크 (Vercel/로컬/선택적)
 - 빌드 시간, 마지막 배포 시간
 
 ## 프로젝트 상세
@@ -61,6 +65,21 @@ api/
 ## Webhook
 - 배포 이벤트 수신 (created, succeeded, failed, ready, canceled)
 - WEBHOOK_SECRET 보안 지원
+
+# 배포 유형 지원
+
+packageinfo.md에서 배포 유형을 설정할 수 있습니다:
+
+- `vercel` (기본): Vercel 배포 URL만 표시
+- `local`: 로컬 서비스 URL (serviceUrl)만 표시
+- `both`: 서비스 URL (메인) + Vercel URL 모두 표시
+
+예시:
+```yaml
+serviceUrl: "https://myservice.com"
+deployType: "both"
+serviceStatus: "active"
+```
 
 # API
 

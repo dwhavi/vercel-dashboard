@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import StatusBadge from './StatusBadge'
+import StatusBadge, { ServiceStatusBadge } from './StatusBadge'
 
 function formatDate(dateString) {
   if (!dateString) return '-'
@@ -32,7 +32,18 @@ export default function ProjectSummary({ project, onClose }) {
   }, [project.id])
 
   const packageInfo = project.packageInfo || {}
-  const productionUrl = project.summary?.aliases?.[0] || project.link?.origin
+  
+  // 배포 타입에 따른 URL 결정
+  const vercelUrl = project.summary?.aliases?.[0] || project.link?.origin
+  let mainUrl = vercelUrl
+  let showBoth = false
+  
+  if (packageInfo.deployType === 'local' && packageInfo.serviceUrl) {
+    mainUrl = packageInfo.serviceUrl
+  } else if (packageInfo.deployType === 'both' && packageInfo.serviceUrl) {
+    mainUrl = packageInfo.serviceUrl
+    showBoth = true
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -44,17 +55,32 @@ export default function ProjectSummary({ project, onClose }) {
               <span className="text-2xl">{packageInfo.icon}</span>
             )}
             <div>
-              <h2 className="text-white font-semibold text-lg">{project.name}</h2>
-              {productionUrl && (
-                <a
-                  href={`https://${productionUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-                >
-                  {productionUrl}
-                </a>
-              )}
+              <div className="flex items-center gap-2">
+                <h2 className="text-white font-semibold text-lg">{project.name}</h2>
+                <ServiceStatusBadge status={packageInfo.serviceStatus} />
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                {mainUrl && (
+                  <a
+                    href={`https://${mainUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    {mainUrl}
+                  </a>
+                )}
+                {showBoth && vercelUrl && vercelUrl !== mainUrl && (
+                  <a
+                    href={`https://${vercelUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                  >
+                    Vercel: {vercelUrl}
+                  </a>
+                )}
+              </div>
             </div>
           </div>
           <button

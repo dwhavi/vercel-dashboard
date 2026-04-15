@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import StatusBadge from './StatusBadge'
+import StatusBadge, { ServiceStatusBadge } from './StatusBadge'
 
 function timeAgo(dateString) {
   if (!dateString) return '-'
@@ -34,7 +34,23 @@ export default function ProjectCard({ project, onClick }) {
                      project.latestDeployment?.state === 'INITIALIZING' ||
                      project.latestDeployment?.state === 'QUEUED'
 
-  const productionUrl = summary.aliases?.[0] || project.link?.origin
+  // 배포 타입에 따른 URL 결정
+  const vercelUrl = summary.aliases?.[0] || project.link?.origin
+  let displayUrl = null
+  let urlLabel = null
+
+  if (packageInfo.deployType === 'local' && packageInfo.serviceUrl) {
+    displayUrl = packageInfo.serviceUrl
+    urlLabel = '로컬'
+  } else if (packageInfo.deployType === 'both') {
+    // both인 경우 serviceUrl을 메인으로, Vercel URL은 툴팁 등으로 표시 가능
+    displayUrl = packageInfo.serviceUrl || vercelUrl
+    urlLabel = packageInfo.serviceUrl ? '서비스' : 'Vercel'
+  } else {
+    // vercel (기본)
+    displayUrl = vercelUrl
+    urlLabel = 'Vercel'
+  }
   
   // 표시할 요약: packageinfo.md의 summary > Readme 요약 > 커밋 메시지
   const displaySummary = packageInfo.summary || summary.readmeSummary || meta.commitMessage || null
@@ -56,6 +72,7 @@ export default function ProjectCard({ project, onClick }) {
               <span className="text-lg">{packageInfo.icon}</span>
             )}
             <h3 className="text-white font-semibold text-base truncate">{project.name}</h3>
+            <ServiceStatusBadge status={packageInfo.serviceStatus} />
             {project.framework && (
               <span className="shrink-0 px-1.5 py-0.5 bg-gray-700/50 text-gray-400 text-[10px] font-medium rounded">
                 {project.framework}
@@ -121,21 +138,42 @@ export default function ProjectCard({ project, onClick }) {
 
         {/* URL + Build time */}
         <div className="flex items-center justify-between pt-1 border-t border-gray-700/30">
-          {productionUrl && (
-            <a
-              href={`https://${productionUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors truncate text-xs"
-            >
-              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
-              </svg>
-              <span className="truncate">{productionUrl}</span>
-            </a>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 메인 URL */}
+            {displayUrl && (
+              <a
+                href={`https://${displayUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors truncate text-xs"
+              >
+                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                </svg>
+                <span className="truncate">{displayUrl}</span>
+                <span className="text-gray-600 text-[10px]">({urlLabel})</span>
+              </a>
+            )}
+            {/* both인 경우 Vercel URL도 표시 */}
+            {packageInfo.deployType === 'both' && vercelUrl && vercelUrl !== displayUrl && (
+              <a
+                href={`https://${vercelUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors truncate text-xs"
+              >
+                <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                </svg>
+                <span className="truncate">{vercelUrl}</span>
+                <span className="text-gray-600 text-[10px]">(Vercel)</span>
+              </a>
+            )}
+          </div>
           <div className="flex items-center gap-2 shrink-0">
             {summary.buildTime != null && (
               <span className="text-gray-600 text-[11px]">

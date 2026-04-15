@@ -47,6 +47,9 @@ export default async function handler(req, res) {
         icon: data.icon || null,
         tags: data.tags || [],
         markdown: mdContent.trim(),
+        serviceUrl: data.serviceUrl || null,
+        deployType: data.deployType || 'vercel',
+        serviceStatus: data.serviceStatus || 'active',
       }
     } catch {
       return null
