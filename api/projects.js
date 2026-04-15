@@ -1,3 +1,5 @@
+import matter from 'gray-matter'
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -23,6 +25,31 @@ export default async function handler(req, res) {
       commitSha: m.githubCommitSha || m.gitCommitSha || null,
       githubRepo: m.githubRepo || null,
       githubOrg: m.githubOrg || null,
+    }
+  }
+
+  // GitHub에서 packageinfo.md를 가져오는 함수
+  const getPackageInfo = async (owner, repo) => {
+    try {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/packageinfo.md`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3.raw',
+        },
+      })
+      
+      if (!response.ok) return null
+      
+      const content = await response.text()
+      const { data, content: mdContent } = matter(content)
+      
+      return {
+        summary: data.summary || null,
+        icon: data.icon || null,
+        tags: data.tags || [],
+        markdown: mdContent.trim(),
+      }
+    } catch {
+      return null
     }
   }
 
@@ -85,8 +112,13 @@ export default async function handler(req, res) {
         try {
           const meta = extractMeta(project.targets?.production?.meta || {})
           
-          // GitHub Readme 요약 가져오기
-          const readmeSummary = meta.githubOrg && meta.githubRepo 
+          // GitHub packageinfo.md 가져오기
+          const packageInfo = meta.githubOrg && meta.githubRepo 
+            ? await getPackageInfo(meta.githubOrg, meta.githubRepo)
+            : null
+          
+          // packageinfo.md가 없으면 Readme 요약 가져오기
+          const readmeSummary = !packageInfo && meta.githubOrg && meta.githubRepo
             ? await getReadmeSummary(meta.githubOrg, meta.githubRepo)
             : null
 
@@ -111,6 +143,7 @@ export default async function handler(req, res) {
               origin: project.link?.origin,
             },
             meta,
+            packageInfo,  // packageinfo.md 정보
             summary: {
               aliases: prodTarget.alias || [],
               buildTime: prodTarget.buildingAt && prodTarget.readyAt
@@ -118,7 +151,7 @@ export default async function handler(req, res) {
                 : null,
               region: prodTarget.createdIn || null,
               lastDeployAt: normalizeDate(prodTarget.createdAt),
-              readmeSummary, // Readme 요약 추가
+              readmeSummary,  // packageinfo.md가 없을 때만 사용
             },
             latestDeployment: dep
               ? {
@@ -138,6 +171,7 @@ export default async function handler(req, res) {
             framework: project.framework,
             link: project.link,
             meta: {},
+            packageInfo: null,
             summary: {},
             latestDeployment: null,
           }

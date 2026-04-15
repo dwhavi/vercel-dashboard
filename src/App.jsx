@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import ProjectCard from './components/ProjectCard'
-import DeploymentList from './components/DeploymentList'
+import ProjectSummary from './components/ProjectSummary'
 
 const POLL_INTERVAL = 30000
 
@@ -148,9 +148,9 @@ export default function App() {
         )}
       </div>
 
-      {/* Deployment Modal */}
+      {/* Project Summary Modal */}
       {selectedProject && (
-        <DeploymentList
+        <ProjectSummary
           project={selectedProject}
           onClose={() => setSelectedProject(null)}
         />

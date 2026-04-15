@@ -12,16 +12,6 @@ function timeAgo(dateString) {
   return `${Math.floor(seconds / 86400)}일 전`
 }
 
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 function shortenSha(sha) {
   if (!sha || sha.length < 8) return sha || ''
   return sha.slice(0, 7)
@@ -31,6 +21,7 @@ export default function ProjectCard({ project, onClick }) {
   const [time, setTime] = useState(timeAgo(project.summary?.lastDeployAt))
   const meta = project.meta || {}
   const summary = project.summary || {}
+  const packageInfo = project.packageInfo || {}
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,6 +35,9 @@ export default function ProjectCard({ project, onClick }) {
                      project.latestDeployment?.state === 'QUEUED'
 
   const productionUrl = summary.aliases?.[0] || project.link?.origin
+  
+  // 표시할 요약: packageinfo.md의 summary > Readme 요약 > 커밋 메시지
+  const displaySummary = packageInfo.summary || summary.readmeSummary || meta.commitMessage || null
 
   return (
     <div
@@ -58,6 +52,9 @@ export default function ProjectCard({ project, onClick }) {
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
+            {packageInfo.icon && (
+              <span className="text-lg">{packageInfo.icon}</span>
+            )}
             <h3 className="text-white font-semibold text-base truncate">{project.name}</h3>
             {project.framework && (
               <span className="shrink-0 px-1.5 py-0.5 bg-gray-700/50 text-gray-400 text-[10px] font-medium rounded">
@@ -71,17 +68,27 @@ export default function ProjectCard({ project, onClick }) {
 
       {/* Summary */}
       <div className="space-y-2 text-sm">
-        {/* Readme Summary - 프로젝트 설명 */}
-        {summary.readmeSummary ? (
+        {/* PackageInfo Summary 또는 Readme 요약 */}
+        {displaySummary ? (
           <p className="text-gray-300 text-sm line-clamp-2 leading-relaxed">
-            {summary.readmeSummary}
-          </p>
-        ) : meta.commitMessage ? (
-          <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-            {meta.commitMessage}
+            {displaySummary}
           </p>
         ) : (
           <p className="text-gray-600 text-xs">프로젝트 설명이 없습니다</p>
+        )}
+
+        {/* 태그 */}
+        {packageInfo.tags && packageInfo.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {packageInfo.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="px-2 py-0.5 bg-gray-700/30 text-gray-400 text-[11px] rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         )}
 
         {/* Commit info row */}
