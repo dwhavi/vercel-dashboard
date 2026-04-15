@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import StatusBadge, { ServiceStatusBadge } from './StatusBadge'
+import StatusBadge from './StatusBadge'
 
 function timeAgo(dateString) {
   if (!dateString) return '-'
@@ -72,7 +72,6 @@ export default function ProjectCard({ project, onClick }) {
               <span className="text-lg">{packageInfo.icon}</span>
             )}
             <h3 className="text-white font-semibold text-base truncate">{project.name}</h3>
-            <ServiceStatusBadge status={packageInfo.serviceStatus} />
             {project.framework && (
               <span className="shrink-0 px-1.5 py-0.5 bg-gray-700/50 text-gray-400 text-[10px] font-medium rounded">
                 {project.framework}

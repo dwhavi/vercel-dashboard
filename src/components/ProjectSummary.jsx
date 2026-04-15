@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import StatusBadge, { ServiceStatusBadge } from './StatusBadge'
+import StatusBadge from './StatusBadge'
 
 function formatDate(dateString) {
   if (!dateString) return '-'
@@ -55,10 +55,7 @@ export default function ProjectSummary({ project, onClose }) {
               <span className="text-2xl">{packageInfo.icon}</span>
             )}
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-white font-semibold text-lg">{project.name}</h2>
-                <ServiceStatusBadge status={packageInfo.serviceStatus} />
-              </div>
+              <h2 className="text-white font-semibold text-lg">{project.name}</h2>
               <div className="flex items-center gap-3 mt-1">
                 {mainUrl && (
                   <a
