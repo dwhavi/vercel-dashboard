@@ -54,7 +54,7 @@ export default function App() {
                 <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 1L24 22H0L12 1Z" />
                 </svg>
-                Vercel Dashboard
+                Project Dashboard
               </h1>
               <p className="text-gray-500 text-sm mt-1">프로젝트 배포 현황</p>
             </div>
