@@ -50,6 +50,7 @@ export default async function handler(req, res) {
         serviceUrl: data.serviceUrl || null,
         deployType: data.deployType || 'vercel',
         serviceStatus: data.serviceStatus || 'active',
+        visible: data.visible !== false,
       }
     } catch {
       return null
@@ -182,8 +183,20 @@ export default async function handler(req, res) {
       })
     )
 
+    // HIDDEN_PROJECTS: 쉼표로 구분된 프로젝트 이름 (예: "my-resume,private-project")
+    const hiddenProjects = (process.env.HIDDEN_PROJECTS || '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+
+    const filtered = projects.filter((p) => {
+      if (hiddenProjects.length && hiddenProjects.includes(p.name.toLowerCase())) return false
+      if (p.packageInfo && p.packageInfo.visible === false) return false
+      return true
+    })
+
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60')
-    return res.status(200).json({ projects })
+    return res.status(200).json({ projects: filtered })
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }
